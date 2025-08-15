@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MBTI性格测试</title>
+    <script src="https://cdn.tailwindcss.com/3.3.3"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        .progress-bar {
+            height: 6px;
+            background-color: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #6366f1;
+            transition: width 0.3s ease;
+        }
+        .option-card {
+            transition: all 0.2s ease;
+        }
+        .option-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .option-card.selected {
+            border-color: #6366f1;
+            background-color: #eef2ff;
+        }
+        .result-card {
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+        }
+        .mbti-letter {
+            width: 3rem;
+            height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            border-radius: 0.5rem;
+        }
+        .mbti-letter.E {
+            background-color: #ecfdf5;
+            color: #10b981;
+        }
+        .mbti-letter.I {
+            background-color: #f0f9ff;
+            color: #3b82f6;
+        }
+        .mbti-letter.S {
+            background-color: #fef2f2;
+            color: #ef4444;
+        }
+        .mbti-letter.N {
+            background-color: #f5f3ff;
+            color: #8b5cf6;
+        }
+        .mbti-letter.T {
+            background-color: #ecfdf5;
+            color: #10b981;
+        }
+        .mbti-letter.F {
+            background-color: #f0f9ff;
+            color: #3b82f6;
+        }
+        .mbti-letter.J {
+            background-color: #fef2f2;
+            color: #ef4444;
+        }
+        .mbti-letter.P {
+            background-color: #f5f3ff;
+            color: #8b5cf6;
+        }
+        @media (max-width: 640px) {
+            .test-container {
+                padding: 1rem;
+            }
+            .option-card {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="max-w-3xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <!-- 标题和简介 -->
+        <div class="text-center mb-10">
+            <h1 class="text-3xl font-bold text-gray-900 mb-3">MBTI性格测试</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">通过28道精心设计的题目，了解你的性格类型，发现真实的自我</p>
+        </div>
+
+        <!-- 测试容器 -->
+        <div id="testContainer" class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300">
+            <!-- 进度条 -->
+            <div class="px-6 pt-6">
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between mt-2 text-sm text-gray-500">
+                    <span id="currentQuestion">0</span>/<span>28</span>
+                </div>
+            </div>
+
+            <!-- 问题区域 -->
+            <div class="p-6 sm:p-8">
+                <!-- 问题展示 -->
+                <div id="questionContainer" class="mb-8">
+                    <h2 id="questionText" class="text-xl font-semibold text-gray-800 mb-6"></h2>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div id="optionA" class="option-card p-4 border-2 border-gray-200 rounded-lg cursor-pointer">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-3 font-semibold text-gray-700">A</div>
+                                <span id="optionAText" class="text-gray-700"></span>
+                            </div>
+                        </div>
+                        <div id="optionB" class="option-card p-4 border-2 border-gray-200 rounded-lg cursor-pointer">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-3 font-semibold text-gray-700">B</div>
+                                <span id="optionBText" class="text-gray-700"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 导航按钮 -->
+                <div class="flex justify-between">
+                    <button id="prevBtn" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <i class="fas fa-arrow-left mr-2"></i>上一题
+                    </button>
+                    <button id="nextBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                        下一题<i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 结果展示区域 (初始隐藏) -->
+        <div id="resultContainer" class="hidden mt-10">
+            <div class="result-card rounded-xl shadow-md p-6 sm:p-8">
+                <h2 class="text-2xl font-bold text-center mb-6">你的MBTI性格类型是: <span id="mbtiType" class="text-indigo-600"></span></h2>
+                
+                <!-- 维度得分展示 -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold mb-4">各维度得分</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div class="bg-white p-4 rounded-lg shadow-sm">
+                            <div class="flex items-center mb-2">
+                                <div class="mbti-letter E mr-3">E</div>
+                                <div class="mbti-letter I">I</div>
+                                <div class="ml-auto font-medium"><span id="eScore">0</span> : <span id="iScore">0</span></div>
+                            </div>
+                            <div class="text-sm text-gray-600" id="eiDesc"></div>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow-sm">
+                            <div class="flex items-center mb-2">
+                                <div class="mbti-letter S mr-3">S</div>
+                                <div class="mbti-letter N">N</div>
+                                <div class="ml-auto font-medium"><span id="sScore">0</span> : <span id="nScore">0</span></div>
+                            </div>
+                            <div class="text-sm text-gray-600" id="snDesc"></div>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow-sm">
+                            <div class="flex items-center mb-2">
+                                <div class="mbti-letter T mr-3">T</div>
+                                <div class="mbti-letter F">F</div>
+                                <div class="ml-auto font-medium"><span id="tScore">0</span> : <span id="fScore">0</span></div>
+                            </div>
+                            <div class="text-sm text-gray-600" id="tfDesc"></div>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow-sm">
+                            <div class="flex items-center mb-2">
+                                <div class="mbti-letter J mr-3">J</div>
+                                <div class="mbti-letter P">P</div>
+                                <div class="ml-auto font-medium"><span id="jScore">0</span> : <span id="pScore">0</span></div>
+                            </div>
+                            <div class="text-sm text-gray-600" id="jpDesc"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 性格描述 -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold mb-4">性格描述</h3>
+                    <div id="typeDescription" class="bg-white p-4 rounded-lg shadow-sm text-gray-700"></div>
+                </div>
+
+                <!-- 重新测试按钮 -->
+                <div class="text-center">
+                    <button id="restartBtn" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                        <i class="fas fa-redo mr-2"></i>重新测试
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 测试题目数据
+        const questions = [
+            {
+                text: "我倾向从何处得到动力和信心：",
+                options: [
+                    "别人。",
+                    "我自己的想法。"
+                ],
+                dimension: "EI"
+            },
+            {
+                text: "当我参加一个社交聚会时，我一般是这样的状态：",
+                options: [
+                    "夜色越深越有劲，一旦我开始投入，也许就是最晚离开的那一个。",
+                    "在夜晚开始的时候，我就疲倦了并且想回家。"
+                ],
+                dimension: "EI"
+            },
+            {
+                text: "下列哪一种听起来比较吸引人？",
+                options: [
+                    "与我的恋人到有很多人且社交活动频繁的地方。",
+                    "待在家中与我的恋人做一些特别的事情，例如说观赏一部有趣的录像带并享用我最爱的外带食物。"
+                ],
+                dimension: "EI"
+            },
+            {
+                text: "在约会中，我通常：",
+                options: [
+                    "整体来说蛮健谈的。",
+                    "较安静并保留，直到我觉得准备好了，才开始说话。"
+                ],
+                dimension: "EI"
+            },
+            {
+                text: "过去，我遇见我大部分恋人是：",
+                options: [
+                    "在公众场合，比如学习工作上、休闲活动中、或当朋友介绍我给他们的朋友时。",
+                    "透过私人的方式，例如婚恋网站、网络聊天、或是由亲密的朋友和家人介绍。"
+                ],
+                dimension: "EI"
+            },
+            {
+                text: "论真实的想法，我倾向拥有：",
+                options: [
+                    "很多认识的人和很亲密的朋友。",
+                    "一些很亲密的朋友和一些认识的人。"
+                ],
+                dimension: "EI"
+            },
+            {
+                text: "过去，我的恋人倾向对我说这些：",
+                options: [
+                    "你难道不可以安静一点吗？",
+                    "你能从自己的世界里面走出来一下吗？"
+                ],
+                dimension: "EI"
+            },
+            {
+                text: "我倾向透过以下方式形成脑海中的概念：",
+                options: [
+                    "我对有可能发生之事的想象和期望。",
+                    "我对目前状况实际认知。"
+                ],
+                dimension: "SN"
+            },
+            {
+                text: "在我做分析的时候，首先能意识到的是：",
+                options: [
+                    "我的直觉。",
+                    "我直接的观察和现成的经验。"
+                ],
+                dimension: "SN"
+            },
+            {
+                text: "在我自己的人际关系中，我一般是这样处理的：",
+                options: [
+                    "经常联络，因为永远有进步的空间。",
+                    "若它没有被破坏，别修补它。"
+                ],
+                dimension: "SN"
+            },
+            {
+                text: "当我在约会觉得放松时，我倾向谈论：",
+                options: [
+                    "未来，关于改进或发明事物，和生活的种种可能性。例如说，我也许会谈论一个新的科学发明，或一个更好的方法来表达我的感受。",
+                    "实际的，具体的，关于「此时此地」的事物。例如说，我也许会在餐后谈论品酒的好方法，或我即将要参加的新奇旅程。"
+                ],
+                dimension: "SN"
+            },
+            {
+                text: "我是这种人：",
+                options: [
+                    "先看整个大局面。",
+                    "先掌握细节。"
+                ],
+                dimension: "SN"
+            },
+            {
+                text: "在我内心深处，我认为：",
+                options: [
+                    "与其活在不完美的现实中，我选择活在我的精神世界里。",
+                    "与其活在虚无缥缈的精神世界，我选择活在现实中。"
+                ],
+                dimension: "SN"
+            },
+            {
+                text: "我通常：",
+                options: [
+                    "偏向于去想象一大堆关于即将来临之约会的事情。",
+                    "偏向于拘紧地想象即将来临的约会，只期待让它自然地发生。"
+                ],
+                dimension: "SN"
+            },
+            {
+                text: "我倾向如此做决定：",
+                options: [
+                    "首先依我的心意，然后依我的逻辑。",
+                    "首先依我的逻辑，然后依我的心意。"
+                ],
+                dimension: "TF"
+            },
+            {
+                text: "我倾向比较能够察觉到：",
+                options: [
+                    "当人们需要情感上的支持时。",
+                    "当人们不合逻辑时。"
+                ],
+                dimension: "TF"
+            },
+            {
+                text: "当自己和某人分手时。",
+                options: [
+                    "我的情绪深陷其中，很难才能抽身而出。",
+                    "虽然我觉得受伤，但一旦下定决心，我会直截了当地将过去恋人的影子甩开。"
+                ],
+                dimension: "TF"
+            },
+            {
+                text: "当与一个人交往时，我倾向评量：",
+                options: [
+                    "情感上的兼容性：表达爱意和对另一半的需求很敏感。",
+                    "智能上的兼容性：沟通重要的想法：客观地讨论和辩论事情。"
+                ],
+                dimension: "TF"
+            },
+            {
+                text: "当我不同意我恋人的想法时：",
+                options: [
+                    "我尽可能地避免伤害对方的感受；若是会对对方造成伤害的话，我就不会说。",
+                    "我通常很直接，毫无保留地把事实和我的逻辑告诉对方，因为对的就是对的。"
+                ],
+                dimension: "TF"
+            },
+            {
+                text: "认识我的人倾向形容我为：",
+                options: [
+                    "热情和敏感。",
+                    "逻辑和明确。"
+                ],
+                dimension: "TF"
+            },
+            {
+                text: "我认为自己和很多人的相遇是：",
+                options: [
+                    "随意的，友善的及重要的。",
+                    "经过思考的，或多或少有一定目的性。"
+                ],
+                dimension: "TF"
+            },
+            {
+                text: "若我有时间和金钱，我的朋友邀请我到国外度假，并且在一天前才通知，我会：",
+                options: [
+                    "必须先检查我的时间表。",
+                    "立即收拾行装。"
+                ],
+                dimension: "JP"
+            },
+            {
+                text: "在第一次约会中：",
+                options: [
+                    "若我所约的人来迟了，我心里会很不高兴。",
+                    "即使所约的人来迟了，我一点都不放在心里。"
+                ],
+                dimension: "JP"
+            },
+            {
+                text: "我偏好：",
+                options: [
+                    "事先知道约会的行程：要去哪里、有谁参加、我会在哪里多久、该如何打扮。",
+                    "让约会自然地发生，不做先前太多的计划。"
+                ],
+                dimension: "JP"
+            },
+            {
+                text: "我期待的生活包含着：",
+                options: [
+                    "科学合理的安排和有毅力的执行。",
+                    "没有什么压力，所有事情自然发生和时间弹性很大。"
+                ],
+                dimension: "JP"
+            },
+            {
+                text: "哪一项较为常见：",
+                options: [
+                    "我先入会场而其它人随后来到。",
+                    "大部分人都先到而我最后一个来。"
+                ],
+                dimension: "JP"
+            },
+            {
+                text: "我是这样喜欢……的人：",
+                options: [
+                    "快刀斩乱麻，下定决心并且做出最后肯定的结论。",
+                    "放开我的选择并且持续收集信息，这样结果会更准确和深刻。"
+                ],
+                dimension: "JP"
+            },
+            {
+                text: "我是这类型的人：",
+                options: [
+                    "喜欢在一个时间里专心于一件事情直到完成。",
+                    "喜欢同时进行好几件事情。"
+                ],
+                dimension: "JP"
+            }
+        ];
+
+        // MBTI类型描述
+        const typeDescriptions = {
+            "ISTJ": "ISTJ型的人是安静、严肃的，通过全面性和可靠性获得成功。他们实际、有责任感，决定的事情就会坚定不移地去做。他们重视传统和忠诚，喜欢将工作、家庭和生活都安排得井井有条。",
+            "ISFJ": "ISFJ型的人安静、友好、有责任感和良知。他们致力于履行自己的义务，忠诚、体贴，关心他人的感受。他们喜欢有序、和谐的工作和生活环境，并为此付出努力。",
+            "INFJ": "INFJ型的人寻求思想、关系、物质等之间的意义和联系。他们富有创造力，有很强的直觉和洞察力，能够理解复杂的想法。他们有坚定的价值观，并致力于实现自己的愿景。",
+            "INTJ": "INTJ型的人在实现自己的想法和达成自己的目标时有创新的想法和非凡的动力。他们能很快洞察到外界事物间的规律并形成长期的远景计划。他们独立、有批判性思维，对自己和他人的要求都很高。",
+            "ISTP": "ISTP型的人灵活、忍耐力强，是个安静的观察者。他们精通机械和工具的使用，喜欢动手解决问题。他们冷静、实际，喜欢分析事物运作的原理，擅长处理危机。",
+            "ISFP": "ISFP型的人安静、友好、敏感、和善。他们喜欢有自己的空间，喜欢按照自己的时间表工作。他们忠于自己的价值观和重要的人，不喜欢争论和冲突。",
+            "INFP": "INFP型的人是理想主义者，忠于自己的价值观及自己所重视的人。他们希望外部生活与自己内心的价值观一致。他们好奇，很快能看到事情的可能性，并能成为实现想法的催化剂。",
+            "INTP": "INTP型的人对于自己感兴趣的任何事物都寻求找到合理的解释。他们喜欢理论和抽象的概念，热衷于思考而非社交活动。他们安静、内向、灵活、适应力强。",
+            "ESTP": "ESTP型的人灵活、忍耐力强，实际，注重结果。他们喜欢积极地采取行动解决问题。他们注重当前，自然不做作，享受和他人在一起的时刻。",
+            "ESFP": "ESFP型的人外向、友好、接受力强。他们热爱生活、物质享受和与人交往。他们喜欢和别人一起将事情做成功，在工作中讲究常识和实用性。",
+            "ENFP": "ENFP型的人热情洋溢、富有想象力。他们认为人生有很多可能性。他们很快能在事情间找到关联，并根据他们所看到的模式自信地行动。",
+            "ENTP": "ENTP型的人反应快、睿智，有激励别人的能力。他们在解决新的、具有挑战性的问题时机智而有策略。他们善于理解概念，不喜欢例行公事。",
+            "ESTJ": "ESTJ型的人实际、现实主义。他们果断，一旦下决心就会马上行动。他们善于将项目和人组织起来将事情完成，并尽可能以最有效率的方法达到目的。",
+            "ESFJ": "ESFJ型的人热心肠、有责任心、合作。他们希望周边的环境温馨而和谐，并为此果断地执行。他们喜欢和他人一起精确并及时地完成任务。",
+            "ENFJ": "ENFJ型的人温暖、同理心强、有责任心。他们善于发现他人的潜能，并乐于帮助他人实现。他们善于交际、受欢迎、有同情心。",
+            "ENTJ": "ENTJ型的人是坦诚、果断的领导者。他们善于发现低效和无效的程序，并开发和实施全面的系统来解决问题。他们擅长长期规划和目标设定。"
+        };
+
+        // 初始化变量
+        let currentQuestion = 0;
+        const answers = Array(questions.length).fill(null);
+        const scores = {
+            E: 0, I: 0,
+            S: 0, N: 0,
+            T: 0, F: 0,
+            J: 0, P: 0
+        };
+
+        // DOM元素
+        const questionText = document.getElementById('questionText');
+        const optionAText = document.getElementById('optionAText');
+        const optionBText = document.getElementById('optionBText');
+        const optionA = document.getElementById('optionA');
+        const optionB = document.getElementById('optionB');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const progressFill = document.getElementById('progressFill');
+        const currentQuestionSpan = document.getElementById('currentQuestion');
+        const testContainer = document.getElementById('testContainer');
+        const resultContainer = document.getElementById('resultContainer');
+        const mbtiType = document.getElementById('mbtiType');
+        const eScore = document.getElementById('eScore');
+        const iScore = document.getElementById('iScore');
+        const sScore = document.getElementById('sScore');
+        const nScore = document.getElementById('nScore');
+        const tScore = document.getElementById('tScore');
+        const fScore = document.getElementById('fScore');
+        const jScore = document.getElementById('jScore');
+        const pScore = document.getElementById('pScore');
+        const eiDesc = document.getElementById('eiDesc');
+        const snDesc = document.getElementById('snDesc');
+        const tfDesc = document.getElementById('tfDesc');
+        const jpDesc = document.getElementById('jpDesc');
+        const typeDescription = document.getElementById('typeDescription');
+        const restartBtn = document.getElementById('restartBtn');
+
+        // 加载问题
+        function loadQuestion(index) {
+            const question = questions[index];
+            questionText.textContent = question.text;
+            optionAText.textContent = question.options[0];
+            optionBText.textContent = question.options[1];
+            
+            // 更新进度
+            currentQuestionSpan.textContent = index + 1;
+            progressFill.style.width = `${((index + 1) / questions.length) * 100}%`;
+            
+            // 更新按钮状态
+            prevBtn.disabled = index === 0;
+            
+            // 清除之前的选择
+            optionA.classList.remove('selected');
+            optionB.classList.remove('selected');
+            
+            // 恢复之前的选择
+            if (answers[index] !== null) {
+                if (answers[index] === 0) {
+                    optionA.classList.add('selected');
+                } else {
+                    optionB.classList.add('selected');
+                }
+            }
+        }
+
+        // 选择选项
+        function selectOption(option) {
+            const otherOption = option === optionA ? optionB : optionA;
+            
+            option.classList.add('selected');
+            otherOption.classList.remove('selected');
+            
+            answers[currentQuestion] = option === optionA ? 0 : 1;
+        }
+
+        // 计算MBTI类型
+        function calculateMBTI() {
+            // 重置分数
+            scores.E = 0; scores.I = 0;
+            scores.S = 0; scores.N = 0;
+            scores.T = 0; scores.F = 0;
+            scores.J = 0; scores.P = 0;
+            
+            // 计算各维度得分
+            for (let i = 0; i < answers.length; i++) {
+                const answer = answers[i];
+                const dimension = questions[i].dimension;
+                
+                if (dimension === "EI") {
+                    if (answer === 0) scores.E++;
+                    else scores.I++;
+                } else if (dimension === "SN") {
+                    if (answer === 0) scores.N++;
+                    else scores.S++;
+                } else if (dimension === "TF") {
+                    if (answer === 0) scores.F++;
+                    else scores.T++;
+                } else if (dimension === "JP") {
+                    if (answer === 0) scores.J++;
+                    else scores.P++;
+                }
+            }
+            
+            // 确定MBTI类型
+            const type = [
+                scores.E >= scores.I ? "E" : "I",
+                scores.S >= scores.N ? "S" : "N",
+                scores.T >= scores.F ? "T" : "F",
+                scores.J >= scores.P ? "J" : "P"
+            ].join("");
+            
+            return type;
+        }
+
+        // 显示结果
+        function showResults() {
+            const type = calculateMBTI();
+            
+            // 更新UI
+            mbtiType.textContent = type;
+            eScore.textContent = scores.E;
+            iScore.textContent = scores.I;
+            sScore.textContent = scores.S;
+            nScore.textContent = scores.N;
+            tScore.textContent = scores.T;
+            fScore.textContent = scores.F;
+            jScore.textContent = scores.J;
+            pScore.textContent = scores.P;
+            
+            // 更新描述
+            eiDesc.textContent = getPreferenceDescription(scores.E, scores.I, "外向", "内向");
+            snDesc.textContent = getPreferenceDescription(scores.S, scores.N, "感觉", "直觉");
+            tfDesc.textContent = getPreferenceDescription(scores.T, scores.F, "思考", "情感");
+            jpDesc.textContent = getPreferenceDescription(scores.J, scores.P, "判断", "知觉");
+            
+            typeDescription.textContent = typeDescriptions[type] || "暂无该类型的详细描述。";
+            
+            // 显示结果容器
+            testContainer.classList.add('hidden');
+            resultContainer.classList.remove('hidden');
+        }
+
+        // 获取偏好强度描述
+        function getPreferenceDescription(score1, score2, type1, type2) {
+            const diff = Math.abs(score1 - score2);
+            let strength = "";
+            
+            if (diff <= 3) strength = "轻微偏好";
+            else if (diff <= 6) strength = "中等偏好";
+            else if (diff <= 9) strength = "明确偏好";
+            else strength = "强烈偏好";
+            
+            return `${strength} ${score1 > score2 ? type1 : type2}`;
+        }
+
+        // 事件监听
+        optionA.addEventListener('click', () => selectOption(optionA));
+        optionB.addEventListener('click', () => selectOption(optionB));
+        
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                loadQuestion(currentQuestion);
+            }
+        });
+        
+        nextBtn.addEventListener('click', () => {
+            if (answers[currentQuestion] === null) {
+                alert("请选择一个选项");
+                return;
+            }
+            
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                loadQuestion(currentQuestion);
+                
+                if (currentQuestion === questions.length - 1) {
+                    nextBtn.textContent = "查看结果";
+                }
+            } else {
+                showResults();
+            }
+        });
+        
+        restartBtn.addEventListener('click', () => {
+            // 重置状态
+            currentQuestion = 0;
+            answers.fill(null);
+            
+            // 重置UI
+            testContainer.classList.remove('hidden');
+            resultContainer.classList.add('hidden');
+            nextBtn.textContent = "下一题";
+            
+            // 加载第一个问题
+            loadQuestion(0);
+        });
+
+        // 初始化
+        loadQuestion(0);
+    </script>
+</body>
+</html>
