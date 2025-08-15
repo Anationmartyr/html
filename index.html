@@ -1,38 +1,38 @@
-
- 
-<头>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MBTI性格测试</title>
     <script src="https://cdn.tailwindcss.com/3.3.3"></script>
-    <链接 关系="样式表" 链接="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-    <样式>
-        身体 {
-            字体：'Inter'，'Noto Sans SC'，无衬线;
-            背景颜色: #f8fafc;
-            颜色: #1e293b;
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
         }
-        .进度条 {
-            高度：6像素;
-            背景颜色: #e2e8f0;
-            边框半径：3像素;
-            溢出：隐藏;
+        .progress-bar {
+            height: 6px;
+            background-color: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
         }
-        .进度条填充 {
-            高度：100%;
-            背景颜色: #6366f1;
-            过渡：宽度 0.3秒 轻松;
+        .progress-fill {
+            height: 100%;
+            background-color: #6366f1;
+            transition: width 0.3s ease;
         }
-        .选项卡 {
-            过渡：全部 0.2秒 简易;
+        .option-card {
+            transition: all 0.2s ease;
         }
-        .选项卡:悬停 {
-            变换：纵向平移（-2像素）；
-            box-shadow：0 4px 6px -1px rgba(0，0，0，0.1)，0 2px 4px -1px rgba(0，0，0，0.06);
+        .option-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
-        .选项卡.已选 {
-            边框颜色: #6366f1;
-            背景颜色: #eef2ff;
+        .option-card.selected {
+            border-color: #6366f1;
+            background-color: #eef2ff;
         }
         .result-card {
             background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
